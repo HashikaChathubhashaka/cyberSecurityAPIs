@@ -1,12 +1,13 @@
 import time
 import secrets
 import base64
-from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import padding as sym_padding
+from cryptography.hazmat.primitives.asymmetric import padding as asym_padding
 from cryptography.hazmat.primitives.asymmetric import rsa  # To generate RSA key
-from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import hashes  # for RSA encryption
+
 
 # To store keys with key_id
 # Using single dict. can occur error of using existing key for other algorithm.
@@ -85,7 +86,7 @@ def encrypt_aes(key_id, plaintext):
     encryptor = cipher.encryptor()
 
     # Padding (AES requires plaintext to be multiple of 16 bytes)
-    padder = padding.PKCS7(128).padder()
+    padder = sym_padding.PKCS7(128).padder()
     padded_plaintext = padder.update(plaintext.encode()) + padder.finalize()
 
     ciphertext = encryptor.update(padded_plaintext) + encryptor.finalize()
@@ -113,7 +114,7 @@ def decrypt_aes(key_id, encoded_ciphertext):
     decrypt_massage = cipher.decryptor()
     decrypted = decrypt_massage.update(ciphertext) + decrypt_massage.finalize()
 
-    unpadder = padding.PKCS7(128).unpadder()  # 128 bits = 16 bytes
+    unpadder = sym_padding.PKCS7(128).unpadder()  # 128 bits = 16 bytes
     plaintext = unpadder.update(decrypted) + unpadder.finalize()
 
     # returning plaintext - original-message
@@ -128,8 +129,8 @@ def encrypt_rsa(key_id, plaintext):
 
     ciphertext = public_key.encrypt(
         plaintext.encode(),
-        padding.OAEP(
-            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+        asym_padding.OAEP(
+            mgf=asym_padding.MGF1(algorithm=hashes.SHA256()),
             algorithm=hashes.SHA256(),
             label=None
         )
@@ -147,8 +148,8 @@ def decrypt_rsa(key_id, ciphertext):
     cipher = base64.b64decode(ciphertext)
     plaintext = private_key.decrypt(
         cipher,
-        padding.OAEP(
-            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+        asym_padding.OAEP(
+            mgf=asym_padding.MGF1(algorithm=hashes.SHA256()),
             algorithm=hashes.SHA256(),
             label=None
         )
