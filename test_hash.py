@@ -1,5 +1,5 @@
 import pytest
-from hash_utils import (  # Replace 'your_module' with your actual Python file name
+from hash_utils import (
     sha_256_hash, sha_512_hash,
     sha3_224_hash, sha3_256_hash, sha3_384_hash, sha3_512_hash,
     verify_hash
